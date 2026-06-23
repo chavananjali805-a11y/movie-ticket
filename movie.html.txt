@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Movie Booking System</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: white;
+    }
+
+    .movie-card {
+      display: inline-block;
+      background: #333;
+      padding: 10px;
+      margin: 10px;
+      cursor: pointer;
+      border-radius: 8px;
+      width: 150px;
+    }
+
+    .movie-card:hover {
+      background: #555;
+    }
+
+    .seat {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      margin: 5px;
+      background: gray;
+      line-height: 40px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .selected {
+      background: green;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🎬 Movie Booking System</h1>
+
+<h2>Select Movie</h2>
+<div id="movies"></div>
+
+<h2>🎟 Select Seats</h2>
+<div id="seats"></div>
+
+<h2 id="total">Total: ₹0</h2>
+
+<button id="bookBtn">Book Ticket</button>
+
+<h3>📦 Bookings</h3>
+<div id="bookings"></div>
+
+<script>
+  // ---------------- MOVIE DATA ----------------
+  const movies = [
+    { id: 1, name: "Avengers", price: 200 },
+    { id: 2, name: "Batman", price: 150 },
+    { id: 3, name: "Inception", price: 180 }
+  ];
+
+  let selectedMovie = null;
+  let selectedSeats = [];
+
+  const moviesDiv = document.getElementById("movies");
+  const seatsDiv = document.getElementById("seats");
+  const totalDiv = document.getElementById("total");
+  const bookingsDiv = document.getElementById("bookings");
+
+  // ---------------- RENDER MOVIES ----------------
+  function renderMovies() {
+    movies.forEach(movie => {
+      const div = document.createElement("div");
+      div.className = "movie-card";
+      div.innerHTML = `<h3>${movie.name}</h3><p>₹${movie.price}</p>`;
+
+      div.addEventListener("click", () => {
+        selectedMovie = movie;
+        selectedSeats = [];
+        renderSeats();
+        updateTotal();
+      });
+
+      moviesDiv.appendChild(div);
+    });
+  }
+
+  // ---------------- RENDER SEATS ----------------
+  function renderSeats() {
+    seatsDiv.innerHTML = "";
+
+    for (let i = 1; i <= 20; i++) {
+      const seat = document.createElement("div");
+      seat.className = "seat";
+      seat.innerText = i;
+
+      seat.addEventListener("click", () => {
+        if (!selectedMovie) {
+          alert("Please select a movie first!");
+          return;
+        }
+
+        if (selectedSeats.includes(i)) {
+          selectedSeats = selectedSeats.filter(s => s !== i);
+          seat.classList.remove("selected");
+        } else {
+          selectedSeats.push(i);
+          seat.classList.add("selected");
+        }
+
+        updateTotal();
+      });
+
+      seatsDiv.appendChild(seat);
+    }
+  }
+
+  // ---------------- TOTAL COST ----------------
+  function updateTotal() {
+    if (!selectedMovie) {
+      totalDiv.innerText = "Total: ₹0";
+      return;
+    }
+
+    const total = selectedSeats.length * selectedMovie.price;
+    totalDiv.innerText = "Total: ₹" + total;
+  }
+
+  // ---------------- ASYNC SIMULATION ----------------
+  function fakeServerCall() {
+    return new Promise(resolve => {
+      setTimeout(() => resolve("success"), 1000);
+    });
+  }
+
+  // ---------------- BOOK TICKET ----------------
+  document.getElementById("bookBtn").addEventListener("click", async () => {
+    if (!selectedMovie || selectedSeats.length === 0) {
+      alert("Select movie and seats!");
+      return;
+    }
+
+    await fakeServerCall();
+
+    const booking = {
+      movie: selectedMovie.name,
+      seats: selectedSeats,
+      total: selectedSeats.length * selectedMovie.price
+    };
+
+    let data = JSON.parse(localStorage.getItem("bookings")) || [];
+    data.push(booking);
+    localStorage.setItem("bookings", JSON.stringify(data));
+
+    alert("🎉 Booking Successful!");
+
+    selectedSeats = [];
+    renderSeats();
+    updateTotal();
+    loadBookings();
+  });
+
+  // ---------------- LOAD BOOKINGS ----------------
+  function loadBookings() {
+    bookingsDiv.innerHTML = "";
+
+    let data = JSON.parse(localStorage.getItem("bookings")) || [];
+
+    data.forEach(b => {
+      const div = document.createElement("div");
+      div.innerText = `🎬 ${b.movie} | Seats: ${b.seats.join(", ")} | ₹${b.total}`;
+      bookingsDiv.appendChild(div);
+    });
+  }
+
+  // ---------------- INIT ----------------
+  renderMovies();
+  renderSeats();
+  loadBookings();
+</script>
+
+</body>
+</html>
